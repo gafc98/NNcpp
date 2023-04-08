@@ -29,21 +29,21 @@ struct Net_Structure
   uint16_t n_neurons;
 };
 
-float sigmoid(const float z)
+float tanh(const float z)
 {
-  return 1.0 / (1.0 + exp(-z));
+  return 2.0 / (1.0 + exp(-z)) - 1.0;
 }
-float sigmoid_derivative(const float z)
+float tanh_derivative(const float tanh)
 {
-  float sig = sigmoid(z);
-  return sig * (1.0 - sig);
+  //float sig = tanh(z);
+  return 1.0 - tanh * tanh;
 }
 
 float linear(const float z)
 {
   return z;
 }
-float linear_derivative(const float z)
+float linear_derivative(const float lin)
 {
   return 1.0;
 }
@@ -54,20 +54,20 @@ float ReLU(const float z)
     return z;
   return 0;
 }
-float ReLU_derivative(const float z)
+float ReLU_derivative(const float relu)
 {
-  if (z > 0)
+  if (relu > 0)
     return 1;
   return 0;
 }
 
-std::map<std::string, float (*)(float)> func_map{{"logistic", &sigmoid}, {"ReLU", &ReLU}, {"none", &linear}}; // , {"GPU", 15}, {"RAM", 20}
-std::map<std::string, float (*)(float)> deriv_func_map{{"logistic", &sigmoid_derivative}, {"ReLU", &ReLU_derivative}, {"none", &linear_derivative}};
+std::map<std::string, float (*)(float)> func_map{{"tanh", &tanh}, {"ReLU", &ReLU}, {"none", &linear}}; // , {"GPU", 15}, {"RAM", 20}
+std::map<std::string, float (*)(float)> deriv_func_map{{"tanh", &tanh_derivative}, {"ReLU", &ReLU_derivative}, {"none", &linear_derivative}};
 
 class FF_net
 {
 public:
-  void add_layer(uint16_t n_neurons, string type = "logistic")
+  void add_layer(uint16_t n_neurons, string type = "none")
   {
     Net_Structure s;
     s.n_neurons = n_neurons;
@@ -114,40 +114,39 @@ public:
     }
   }
 
-  void feed_forward(Vector x)
+  Vector feed_forward(Vector x)
   {
     _layers[0].a = x; // set first layer activations to input
     for (size_t i = 1; i < _layers.size(); i++)
     {
       _layers[i].z = _layers[i].W * _layers[i - 1].a + _layers[i].b;
       _layers[i].a = _func_of_vec(_layers[i].z, func_map[_ns[i].non_linearity_type]);
-    } 
+    }
+    return _layers[_layers.size() - 1].a;
   };
 
-  Vector get_loss(Vector y)
+  Vector get_loss(Vector target)
   {
-    Vector dist = _layers[_layers.size() - 1].a - y;
+    Vector dist = _layers[_layers.size() - 1].a - target;
     return dist.cwiseProduct(dist);
   };
 
-  void layer_jacobian(Vector x, Vector y)
+  void update_net(Vector target)
   {
     size_t size_layers = _layers.size();
 
-    _layers[size_layers - 1].jac_z = _layers[size_layers - 1].a - y; // derivative of loss
+    _layers[size_layers - 1].jac_z = _layers[size_layers - 1].a - target; // derivative of loss
     _layers[size_layers - 1].jac_b = _layers[size_layers - 1].jac_z;
     _layers[size_layers - 1].jac_W = _layers[size_layers - 1].jac_z * (_layers[size_layers - 2].a.transpose());
 
     for (size_t i = size_layers - 1; i > 1; i--)
     {
-      _layers[i - 1].jac_z = ( _layers[i].W.transpose() * _layers[i].jac_z ).cwiseProduct(_func_of_vec(_layers[i-1].z, deriv_func_map[_ns[i-1].non_linearity_type]));
+      _layers[i - 1].jac_z = ( _layers[i].W.transpose() * _layers[i].jac_z ).cwiseProduct(_func_of_vec(_layers[i-1].a, deriv_func_map[_ns[i-1].non_linearity_type]));
       _layers[i - 1].jac_b = _layers[i - 1].jac_z;
       _layers[i - 1].jac_W = _layers[i - 1].jac_z * (_layers[i - 2].a.transpose());
     }
-  };
 
-  void update_net()
-  {
+    // update weights
     for (auto & l : _layers)
     {
       l.b += - _learning_rate * l.jac_b;
@@ -171,7 +170,7 @@ private:
 
   std::vector<Net_Structure> _ns;
   std::vector<Layer> _layers;
-  float _layer_init_multiplier = 1.0;
+  float _layer_init_multiplier = 0.01;
   float _learning_rate = 0.001;
 };
 
