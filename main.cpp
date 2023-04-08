@@ -8,17 +8,22 @@ using Vector = Eigen::VectorXf;
 
 int main()
 {
-  Layer lr;
-  lr.activations = Vector(12);
-  lr.deltas = Vector(12);
-  lr.non_linearity_type = "logistic";
-  lr.W = Matrix(12, 20);
+  FF_net net;
+  net.add_layer(2);
+  net.add_layer(4);
+  net.add_layer(3);
+  net.add_layer(1);
+  net.generate_layers();
+  net.print_layers_W();
 
-  Matrix A(3,3);
-  A << 1, 2, 3, 4, 5, 6, 7, 8, 9;
+  std::cout << "\n\n";
+  Vector x(2);
+  x << 1, 2;
+  std::cout << x;
+  std::cout << "\n\n";
 
-  Vector v(3);
-  v << 1, 2, 3;
-
-  std::cout << A * v << "\n";
+  net.feed_forward(x);
+  net.print_layers_activations();
+  net.layer_jacobian();
+  net.print_layers_deltas();
 }
