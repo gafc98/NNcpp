@@ -5,6 +5,7 @@
 #include <string>
 #include <Eigen/Dense>
 #include <vector>
+#include <map>
  
 using Matrix = Eigen::MatrixXf;
 using Vector = Eigen::VectorXf;
@@ -20,27 +21,58 @@ struct Layer
   Vector jac_z;
   Matrix jac_W;
   Vector jac_b;
+};
 
+struct Net_Structure
+{
   string non_linearity_type;
+  uint16_t n_neurons;
 };
 
 float sigmoid(const float z)
 {
   return 1.0 / (1.0 + exp(-z));
 }
-// Assuming z are already results of sigmoid function,
-// if not it should be return Sigmoid(z) * (1.0 - Sigmoid(z));
 float sigmoid_derivative(const float z)
 {
-  return z * (1.0 - z);
+  float sig = sigmoid(z);
+  return sig * (1.0 - sig);
 }
+
+float linear(const float z)
+{
+  return z;
+}
+float linear_derivative(const float z)
+{
+  return 1.0;
+}
+
+float ReLU(const float z)
+{
+  if (z > 0)
+    return z;
+  return 0;
+}
+float ReLU_derivative(const float z)
+{
+  if (z > 0)
+    return 1;
+  return 0;
+}
+
+std::map<std::string, float (*)(float)> func_map{{"logistic", &sigmoid}, {"ReLU", &ReLU}, {"none", &linear}}; // , {"GPU", 15}, {"RAM", 20}
+std::map<std::string, float (*)(float)> deriv_func_map{{"logistic", &sigmoid_derivative}, {"ReLU", &ReLU_derivative}, {"none", &linear_derivative}};
 
 class FF_net
 {
 public:
   void add_layer(uint16_t n_neurons, string type = "logistic")
   {
-    _ns.push_back(n_neurons);
+    Net_Structure s;
+    s.n_neurons = n_neurons;
+    s.non_linearity_type = type;
+    _ns.push_back(s);
   };
 
   void generate_layers()
@@ -49,8 +81,8 @@ public:
     _layers.push_back(l); // this will be used for 1st input
     for (size_t i = 1; i < _ns.size(); i++)
     {
-      l.W = _layer_init_multiplier * Matrix::Random(_ns[i], _ns[i-1]);
-      l.b = _layer_init_multiplier * Vector::Random(_ns[i]);
+      l.W = _layer_init_multiplier * Matrix::Random(_ns[i].n_neurons, _ns[i-1].n_neurons);
+      l.b = _layer_init_multiplier * Vector::Random(_ns[i].n_neurons);
       _layers.push_back(l);
     }
   };
@@ -88,7 +120,7 @@ public:
     for (size_t i = 1; i < _layers.size(); i++)
     {
       _layers[i].z = _layers[i].W * _layers[i - 1].a + _layers[i].b;
-      _layers[i].a = _func_of_vec(_layers[i].z, &sigmoid);
+      _layers[i].a = _func_of_vec(_layers[i].z, func_map[_ns[i].non_linearity_type]);
     } 
   };
 
@@ -108,7 +140,7 @@ public:
 
     for (size_t i = size_layers - 1; i > 1; i--)
     {
-      _layers[i - 1].jac_z = ( _layers[i].W.transpose() * _layers[i].jac_z ).cwiseProduct(_func_of_vec(_layers[i-1].a, &sigmoid_derivative));
+      _layers[i - 1].jac_z = ( _layers[i].W.transpose() * _layers[i].jac_z ).cwiseProduct(_func_of_vec(_layers[i-1].z, deriv_func_map[_ns[i-1].non_linearity_type]));
       _layers[i - 1].jac_b = _layers[i - 1].jac_z;
       _layers[i - 1].jac_W = _layers[i - 1].jac_z * (_layers[i - 2].a.transpose());
     }
@@ -137,7 +169,7 @@ private:
     return v;
   };
 
-  std::vector<uint16_t> _ns;
+  std::vector<Net_Structure> _ns;
   std::vector<Layer> _layers;
   float _layer_init_multiplier = 1.0;
   float _learning_rate = 0.001;
