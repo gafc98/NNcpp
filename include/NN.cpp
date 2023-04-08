@@ -61,8 +61,33 @@ float ReLU_derivative(const float relu)
   return 0;
 }
 
-std::map<std::string, float (*)(float)> func_map{{"tanh", &tanh}, {"ReLU", &ReLU}, {"none", &linear}}; // , {"GPU", 15}, {"RAM", 20}
-std::map<std::string, float (*)(float)> deriv_func_map{{"tanh", &tanh_derivative}, {"ReLU", &ReLU_derivative}, {"none", &linear_derivative}};
+float leaky_ReLU(const float z)
+{
+  if (z > 0)
+    return z;
+  return 0.001 * z;
+}
+float leaky_ReLU_derivative(const float relu)
+{
+  if (relu > 0)
+    return 1;
+  return 0.001;
+}
+
+std::map<std::string, float (*)(float)> func_map
+{
+  {"none", &linear},
+  {"tanh", &tanh},
+  {"ReLU", &ReLU},
+  {"leaky_ReLU", &leaky_ReLU}
+};
+std::map<std::string, float (*)(float)> deriv_func_map
+{
+  {"none", &linear_derivative},
+  {"tanh", &tanh_derivative},
+  {"ReLU", &ReLU_derivative},
+  {"leaky_ReLU", &leaky_ReLU_derivative}
+};
 
 class FF_net
 {
@@ -153,6 +178,11 @@ public:
       l.W += - _learning_rate * l.jac_W;
     }
   };
+
+  void set_learning_rate(float lr)
+  {
+    _learning_rate = lr;
+  }
 
 private:
   inline void _append_one_to_vec(Vector & v)

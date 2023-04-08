@@ -21,7 +21,9 @@ int main()
   net.add_layer(2);
   for (size_t i = 0; i < 1; i++)
   {
-    net.add_layer(50, "tanh");
+    net.add_layer(50, "leaky_ReLU");
+    net.add_layer(30, "tanh");
+    net.add_layer(30, "tanh");
   }
   net.add_layer(1);
   net.generate_layers();
@@ -29,7 +31,7 @@ int main()
   
   std::vector<Data> training_data;
   
-  for (size_t i = 0; i < 200; i++)
+  for (size_t i = 0; i < 20000; i++)
   {
     Data data;
     data.x = Vector::Random(2);
@@ -40,7 +42,7 @@ int main()
 
   auto rng = std::default_random_engine{};
 
-  for (size_t e = 0; e < 100; e++)
+  for (size_t e = 0; e < 10000; e++)
   {
     std::shuffle(std::begin(training_data), std::end(training_data), rng);
     float cum_loss = 0;
