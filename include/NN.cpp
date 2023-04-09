@@ -227,7 +227,7 @@ public:
 private:
   std::vector<Net_Structure> _ns;
   std::vector<Layer> _layers;
-  float _layer_init_multiplier = 0.01;
+  float _layer_init_multiplier = 0.1;
   float _learning_rate = 0.001;
 };
 

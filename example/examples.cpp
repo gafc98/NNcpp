@@ -155,11 +155,13 @@ void mnist_digit_classifier()
 
     FF_net net;
     net.add_layer(n_inputs);
-    net.add_layer(40, "tanh");
-    net.add_layer(30, "tanh");
+    for (size_t i = 0; i < 4; i++)
+    {
+        net.add_layer(40, "tanh");
+    }
     net.add_layer(10, "softmax");
     net.generate_layers();
-    net.set_learning_rate(0.1);
+    net.set_learning_rate(0.01);
 
     std::vector<Data> training_data;
     read_data(n_inputs, 1, "example/training_data.txt", training_data);
@@ -173,7 +175,7 @@ void mnist_digit_classifier()
 
     auto rng = std::default_random_engine{};
 
-    for (size_t e = 0; e < 150; e++)
+    for (size_t e = 0; e < 500; e++)
     {
         std::shuffle(std::begin(training_data), std::end(training_data), rng);
         float cum_loss = 0;
@@ -187,7 +189,7 @@ void mnist_digit_classifier()
         //std::cout << "example:\nx:\n" << training_data[0].x << "\n\ny:\n" << training_data[0].y << "\n\nprediction:\n" << net.feed_forward(training_data[0].x) << "\n";
     }
 
-    // test 10 examples on test data
+    // test examples on training and test data
     std::vector<Data> test_data;
     read_data(n_inputs, 1, "example/test_data.txt", test_data);
     for (Data & d : test_data)
@@ -197,6 +199,27 @@ void mnist_digit_classifier()
         d.y = new_y;
     }
 
+    size_t bingos = 0;
+    for (size_t i = 0; i < training_data.size(); i++)
+    {
+        size_t target = get_max_idx(training_data[i].y) + 1;
+        size_t prediction = get_max_idx(net.feed_forward(training_data[i].x)) + 1;
+        if (target == prediction)
+            bingos++;
+    }
+    std::cout << "Success rate on training data over " << training_data.size() << " samples: " << ((float)bingos / (float)training_data.size()) * 100 << " %\n";
+
+    bingos = 0;
+    for (size_t i = 0; i < test_data.size(); i++)
+    {
+        size_t target = get_max_idx(test_data[i].y) + 1;
+        size_t prediction = get_max_idx(net.feed_forward(test_data[i].x)) + 1;
+        if (target == prediction)
+            bingos++;
+    }
+    std::cout << "Success rate on test data over " << test_data.size() << " samples: " << ((float)bingos / (float)test_data.size()) * 100 << " %\n";
+
+    // some examples
     for (size_t i = 0; i < 10; i++)
     {
         size_t target = get_max_idx(test_data[i].y) + 1;
