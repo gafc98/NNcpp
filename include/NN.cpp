@@ -150,10 +150,10 @@ public:
     return _layers[_layers.size() - 1].a;
   };
 
-  Vector get_loss(Vector target)
+  float get_loss(Vector target)
   {
     Vector dist = _layers[_layers.size() - 1].a - target;
-    return dist.cwiseProduct(dist);
+    return dist.squaredNorm();
   };
 
   void update_net(Vector target)
