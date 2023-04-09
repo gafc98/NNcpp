@@ -38,12 +38,14 @@ int main()
     data.y = Vector(2);
     data.y << sin(data.x[0]) + cos(data.x[1]) - exp(- data.x[0] * data.x[0] - data.x[1] * data.x[1]),
               exp(data.x[1]) * tanh(data.x(0));
+    data.y(0) = (tanh(data.y(0)) + 1) * 0.5;
+    data.y(1) = (tanh(data.y(1)) + 1) * 0.5;
     training_data.push_back(data);
   }
 
   auto rng = std::default_random_engine{};
 
-  for (size_t e = 0; e < 10000; e++)
+  for (size_t e = 0; e < 1000; e++)
   {
     std::shuffle(std::begin(training_data), std::end(training_data), rng);
     float cum_loss = 0;
@@ -53,7 +55,7 @@ int main()
       cum_loss += net.get_loss(data.y);
       net.update_net(data.y);
     }
-    std::cout <<"loss: " << cum_loss << "\n";
+    std::cout << "epoch: " << e << "\tloss: " << cum_loss << "\n";
     //std::cout << "example:\nx:\n" << training_data[0].x << "\n\ny:\n" << training_data[0].y << "\n\nprediction:\n" << net.feed_forward(training_data[0].x) << "\n";
   }
 

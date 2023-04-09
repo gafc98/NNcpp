@@ -160,7 +160,7 @@ public:
   {
     size_t size_layers = _layers.size();
 
-    _layers[size_layers - 1].jac_z = _layers[size_layers - 1].a - target; // derivative of loss
+    _layers[size_layers - 1].jac_z = ( _layers[size_layers - 1].a - target ).cwiseProduct(_func_of_vec(_layers[size_layers - 1].a, deriv_func_map[_ns[size_layers - 1].non_linearity_type])); // derivative of loss
     _layers[size_layers - 1].jac_b = _layers[size_layers - 1].jac_z;
     _layers[size_layers - 1].jac_W = _layers[size_layers - 1].jac_z * (_layers[size_layers - 2].a.transpose());
 
