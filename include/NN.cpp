@@ -29,59 +29,78 @@ struct Net_Structure
   uint16_t n_neurons;
 };
 
-float tanh(const float z)
+Vector tanh(Vector z)
 {
-  return 2.0 / (1.0 + exp(-z)) - 1.0;
+  for (auto & i : z)
+    i = 2.0 / (1.0 + exp(-i)) - 1.0;
+  return z;
 }
-float tanh_derivative(const float tanh)
+Vector tanh_derivative(Vector tanh)
 {
-  //float sig = tanh(z);
-  return 1.0 - tanh * tanh;
+  for (auto & i : tanh)
+    i = 1.0 - i * i;
+  return tanh;
 }
 
-float linear(const float z)
+Vector linear(Vector z)
 {
   return z;
 }
-float linear_derivative(const float lin)
+Vector linear_derivative(Vector lin)
 {
-  return 1.0;
+  return Vector::Ones(lin.size());
 }
 
-float ReLU(const float z)
+Vector ReLU(Vector z)
 {
-  if (z > 0)
-    return z;
-  return 0;
+  for (auto & i : z)
+  {
+    if (i <= 0.0)
+      i = 0.0;
+  }
+  return z;
 }
-float ReLU_derivative(const float relu)
+Vector ReLU_derivative(Vector relu)
 {
-  if (relu > 0)
-    return 1;
-  return 0;
-}
-
-float leaky_ReLU(const float z)
-{
-  if (z > 0)
-    return z;
-  return 0.001 * z;
-}
-float leaky_ReLU_derivative(const float relu)
-{
-  if (relu > 0)
-    return 1;
-  return 0.001;
+  for (auto & i : relu)
+  {
+    if (i <= 0.0)
+      i = 0.0;
+    else
+      i = 1.0;
+  }
+  return relu;
 }
 
-std::map<std::string, float (*)(float)> func_map
+Vector leaky_ReLU(Vector z)
+{
+  for (auto & i : z)
+  {
+    if (i <= 0.0)
+      i = 0.001 * i;
+  }
+  return z;
+}
+Vector leaky_ReLU_derivative(Vector relu)
+{
+  for (auto & i : relu)
+  {
+    if (i <= 0.0)
+      i = 0.001;
+    else
+      i = 1.0;
+  }
+  return relu;
+}
+
+std::map<std::string, Vector (*)(Vector)> func_map
 {
   {"none", &linear},
   {"tanh", &tanh},
   {"ReLU", &ReLU},
   {"leaky_ReLU", &leaky_ReLU}
 };
-std::map<std::string, float (*)(float)> deriv_func_map
+std::map<std::string, Vector (*)(Vector)> deriv_func_map
 {
   {"none", &linear_derivative},
   {"tanh", &tanh_derivative},
@@ -145,7 +164,7 @@ public:
     for (size_t i = 1; i < _layers.size(); i++)
     {
       _layers[i].z = _layers[i].W * _layers[i - 1].a + _layers[i].b;
-      _layers[i].a = _func_of_vec(_layers[i].z, func_map[_ns[i].non_linearity_type]);
+      _layers[i].a = func_map[_ns[i].non_linearity_type](_layers[i].z);
     }
     return _layers[_layers.size() - 1].a;
   };
@@ -160,13 +179,13 @@ public:
   {
     size_t size_layers = _layers.size();
 
-    _layers[size_layers - 1].jac_z = ( _layers[size_layers - 1].a - target ).cwiseProduct(_func_of_vec(_layers[size_layers - 1].a, deriv_func_map[_ns[size_layers - 1].non_linearity_type])); // derivative of loss
+    _layers[size_layers - 1].jac_z = ( _layers[size_layers - 1].a - target ).cwiseProduct(deriv_func_map[_ns[size_layers - 1].non_linearity_type](_layers[size_layers - 1].a)); // derivative of loss
     _layers[size_layers - 1].jac_b = _layers[size_layers - 1].jac_z;
     _layers[size_layers - 1].jac_W = _layers[size_layers - 1].jac_z * (_layers[size_layers - 2].a.transpose());
 
     for (size_t i = size_layers - 1; i > 1; i--)
     {
-      _layers[i - 1].jac_z = ( _layers[i].W.transpose() * _layers[i].jac_z ).cwiseProduct(_func_of_vec(_layers[i-1].a, deriv_func_map[_ns[i-1].non_linearity_type]));
+      _layers[i - 1].jac_z = ( _layers[i].W.transpose() * _layers[i].jac_z ).cwiseProduct( deriv_func_map[_ns[i-1].non_linearity_type](_layers[i-1].a) );
       _layers[i - 1].jac_b = _layers[i - 1].jac_z;
       _layers[i - 1].jac_W = _layers[i - 1].jac_z * (_layers[i - 2].a.transpose());
     }
@@ -185,19 +204,6 @@ public:
   }
 
 private:
-  inline void _append_one_to_vec(Vector & v)
-  {
-    v.conservativeResize(v.size() + 1);
-    v[v.size() - 1] = 1.0;
-  };
-
-  inline Vector _func_of_vec(Vector v, float (func) (float))
-  {
-    for (float & element : v)
-      element = func(element);
-    return v;
-  };
-
   std::vector<Net_Structure> _ns;
   std::vector<Layer> _layers;
   float _layer_init_multiplier = 0.01;

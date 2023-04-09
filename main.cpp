@@ -21,8 +21,8 @@ int main()
   net.add_layer(2);
   for (size_t i = 0; i < 1; i++)
   {
-    //net.add_layer(50, "leaky_ReLU");
-    net.add_layer(30, "tanh");
+    net.add_layer(50, "leaky_ReLU");
+    net.add_layer(30, "ReLU");
     net.add_layer(30, "tanh");
   }
   net.add_layer(2);
