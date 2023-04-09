@@ -1,9 +1,9 @@
 from keras.datasets import mnist
 
-def write_data_set_csv(X, y, file_name, N_samples):
+def write_data_set_csv(X, y, file_name, N_samples = None):
     if not N_samples:
         N_samples = X.shape[0]
-    print(f"file: {file_name} will contain {N_samples}...")
+    print(f"file: {file_name} will contain {N_samples} samples...")
     with open(file_name, "w") as f:
         for n in range(N_samples):
             line = ""
@@ -24,8 +24,8 @@ print('X_test:  '  + str(test_X.shape))
 print('Y_test:  '  + str(test_y.shape))
  
 #writing csv for the data base
-write_data_set_csv(train_X, train_y, "training_data.txt", 5000)
-write_data_set_csv(test_X, test_y, "test_data.txt", 1000)
+write_data_set_csv(train_X, train_y, "example/training_data.txt", 5000)
+write_data_set_csv(test_X, test_y, "example/test_data.txt", 1000)
 
 #plotting
 from matplotlib import pyplot

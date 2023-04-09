@@ -155,7 +155,7 @@ void mnist_digit_classifier()
 
     FF_net net;
     net.add_layer(n_inputs);
-    for (size_t i = 0; i < 4; i++)
+    for (size_t i = 0; i < 5; i++)
     {
         net.add_layer(40, "tanh");
     }
