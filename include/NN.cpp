@@ -11,6 +11,12 @@ using Matrix = Eigen::MatrixXf;
 using Vector = Eigen::VectorXf;
 using std::string;
 
+struct Data
+{
+  Vector x;
+  Vector y;
+};
+
 struct Layer
 {
   Vector a; // actiovations
@@ -93,19 +99,34 @@ Vector leaky_ReLU_derivative(Vector relu)
   return relu;
 }
 
+Vector softmax(Vector z)
+{
+  for (auto & i : z)
+    i = exp(i);
+  return z / z.sum();
+}
+Vector softmax_derivative(Vector smax)
+{
+  for (auto & i : smax)
+    i = i * (1.0 - i);
+  return smax;
+}
+
 std::map<std::string, Vector (*)(Vector)> func_map
 {
   {"none", &linear},
   {"tanh", &tanh},
   {"ReLU", &ReLU},
-  {"leaky_ReLU", &leaky_ReLU}
+  {"leaky_ReLU", &leaky_ReLU},
+  {"softmax", &softmax}
 };
 std::map<std::string, Vector (*)(Vector)> deriv_func_map
 {
   {"none", &linear_derivative},
   {"tanh", &tanh_derivative},
   {"ReLU", &ReLU_derivative},
-  {"leaky_ReLU", &leaky_ReLU_derivative}
+  {"leaky_ReLU", &leaky_ReLU_derivative},
+  {"softmax", &softmax_derivative}
 };
 
 class FF_net
