@@ -146,8 +146,9 @@ public:
     _layers.push_back(l); // this will be used for 1st input
     for (size_t i = 1; i < _ns.size(); i++)
     {
-      l.W = _layer_init_multiplier * Matrix::Random(_ns[i].n_neurons, _ns[i-1].n_neurons);
-      l.b = _layer_init_multiplier * Vector::Random(_ns[i].n_neurons);
+      float multiplier = sqrt(6.0 / (_ns[i].n_neurons + _ns[i-1].n_neurons)); // based on Glorot and Bengio, 2010
+      l.W = multiplier * Matrix::Random(_ns[i].n_neurons, _ns[i-1].n_neurons);
+      l.b = multiplier * Vector::Random(_ns[i].n_neurons);
       _layers.push_back(l);
     }
   };
@@ -227,7 +228,6 @@ public:
 private:
   std::vector<Net_Structure> _ns;
   std::vector<Layer> _layers;
-  float _layer_init_multiplier = 0.1;
   float _learning_rate = 0.001;
 };
 

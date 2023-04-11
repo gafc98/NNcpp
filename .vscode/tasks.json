@@ -13,7 +13,7 @@
 				"-o",
 				"${workspaceFolder}\\main.exe",
 				"-IC:\\Eigen3\\",
-				"-O3",
+				"-Ofast",
 				"-fconcepts-ts"				
 			],
 			"options": {
