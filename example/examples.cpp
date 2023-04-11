@@ -155,10 +155,13 @@ void mnist_digit_classifier()
 
     FF_net net;
     net.add_layer(n_inputs);
-    for (size_t i = 0; i < 5; i++)
-    {
-        net.add_layer(40, "tanh");
-    }
+    net.add_layer(800, "tanh");
+    net.add_layer(700, "tanh");
+    net.add_layer(500, "tanh");
+    net.add_layer(400, "tanh");
+    net.add_layer(300, "tanh");
+    net.add_layer(200, "tanh");
+    net.add_layer(100, "tanh");
     net.add_layer(10, "softmax");
     net.generate_layers();
     net.set_learning_rate(0.01);
@@ -175,7 +178,7 @@ void mnist_digit_classifier()
 
     auto rng = std::default_random_engine{};
 
-    for (size_t e = 0; e < 500; e++)
+    for (size_t e = 0; e < 50; e++)
     {
         std::shuffle(std::begin(training_data), std::end(training_data), rng);
         float cum_loss = 0;
