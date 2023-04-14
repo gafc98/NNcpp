@@ -24,9 +24,8 @@ struct Layer
   Matrix W;
   Vector b;
 
-  Vector jac_z;
+  Vector jac_z_b; // denotes the jacobian of b and z as jac(z) = jac(b)
   Matrix jac_W;
-  Vector jac_b;
 };
 
 struct Net_Structure
@@ -174,8 +173,8 @@ public:
     for (auto & l : _layers)
     {
       std::cout << "layer: " << i++ << "\n";
-      std::cout << "jac_z:\n" << l.jac_z << "\n\n";
-      std::cout << "jac_b:\n" << l.jac_b << "\n";
+      std::cout << "jac_z_b:\n" << l.jac_z_b << "\n\n";
+
       std::cout << "jac_W:\n" << l.jac_W << "\n";
     }
   }
@@ -201,21 +200,19 @@ public:
   {
     size_t size_layers = _layers.size();
 
-    _layers[size_layers - 1].jac_z = ( _layers[size_layers - 1].a - target ).cwiseProduct(deriv_func_map[_ns[size_layers - 1].non_linearity_type](_layers[size_layers - 1].a)); // derivative of loss
-    _layers[size_layers - 1].jac_b = _layers[size_layers - 1].jac_z;
-    _layers[size_layers - 1].jac_W = _layers[size_layers - 1].jac_z * (_layers[size_layers - 2].a.transpose());
+    _layers[size_layers - 1].jac_z_b = ( _layers[size_layers - 1].a - target ).cwiseProduct(deriv_func_map[_ns[size_layers - 1].non_linearity_type](_layers[size_layers - 1].a)); // derivative of loss
+    _layers[size_layers - 1].jac_W = _layers[size_layers - 1].jac_z_b * (_layers[size_layers - 2].a.transpose());
 
     for (size_t i = size_layers - 1; i > 1; i--)
     {
-      _layers[i - 1].jac_z = ( _layers[i].W.transpose() * _layers[i].jac_z ).cwiseProduct( deriv_func_map[_ns[i-1].non_linearity_type](_layers[i-1].a) );
-      _layers[i - 1].jac_b = _layers[i - 1].jac_z;
-      _layers[i - 1].jac_W = _layers[i - 1].jac_z * (_layers[i - 2].a.transpose());
+      _layers[i - 1].jac_z_b = ( _layers[i].W.transpose() * _layers[i].jac_z_b ).cwiseProduct( deriv_func_map[_ns[i-1].non_linearity_type](_layers[i-1].a) );
+      _layers[i - 1].jac_W = _layers[i - 1].jac_z_b * (_layers[i - 2].a.transpose());
     }
 
     // update weights
     for (auto & l : _layers)
     {
-      l.b += - _learning_rate * l.jac_b;
+      l.b += - _learning_rate * l.jac_z_b;
       l.W += - _learning_rate * l.jac_W;
     }
   };
