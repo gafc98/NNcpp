@@ -11,6 +11,9 @@ using Matrix = Eigen::MatrixXf;
 using Vector = Eigen::VectorXf;
 using std::string;
 
+namespace feed_forward_net
+{
+
 struct Data
 {
   Vector x;
@@ -190,17 +193,21 @@ public:
     return _layers[_layers.size() - 1].a;
   };
 
-  float get_loss(Vector target)
+  float get_loss()
   {
-    Vector dist = _layers[_layers.size() - 1].a - target;
+    Vector dist = _layers[_layers.size() - 1].a - _target;
     return dist.squaredNorm();
   };
 
-  void update_net(Vector target)
+  void backprop_net(Vector x, Vector target)
   {
+    feed_forward(x);
+
+    _target = target;
+
     size_t size_layers = _layers.size();
 
-    _layers[size_layers - 1].jac_z_b = ( _layers[size_layers - 1].a - target ).cwiseProduct(deriv_func_map[_ns[size_layers - 1].non_linearity_type](_layers[size_layers - 1].a)); // derivative of loss
+    _layers[size_layers - 1].jac_z_b = ( _layers[size_layers - 1].a - _target ).cwiseProduct(deriv_func_map[_ns[size_layers - 1].non_linearity_type](_layers[size_layers - 1].a)); // derivative of loss
     _layers[size_layers - 1].jac_W = _layers[size_layers - 1].jac_z_b * (_layers[size_layers - 2].a.transpose());
 
     for (size_t i = size_layers - 1; i > 1; i--)
@@ -225,7 +232,10 @@ public:
 private:
   std::vector<Net_Structure> _ns;
   std::vector<Layer> _layers;
+  Vector _target;
   float _learning_rate = 0.001;
+};
+
 };
 
 #endif // FEED_FORWARD_NET
