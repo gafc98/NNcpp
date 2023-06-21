@@ -155,13 +155,13 @@ void mnist_digit_classifier()
 
     FF_net net;
     net.add_layer(n_inputs);
-    net.add_layer(800, "tanh");
-    net.add_layer(700, "tanh");
-    net.add_layer(500, "tanh");
-    net.add_layer(400, "tanh");
-    net.add_layer(300, "tanh");
-    net.add_layer(200, "tanh");
-    net.add_layer(100, "tanh");
+    net.add_layer(800, "leaky_ReLU");
+    net.add_layer(700, "leaky_ReLU");
+    net.add_layer(500, "leaky_ReLU");
+    net.add_layer(400, "leaky_ReLU");
+    net.add_layer(300, "leaky_ReLU");
+    net.add_layer(200, "leaky_ReLU");
+    net.add_layer(100, "leaky_ReLU");
     net.add_layer(10, "softmax");
     net.generate_layers();
     net.set_learning_rate(0.01);
