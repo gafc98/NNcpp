@@ -151,6 +151,10 @@ public:
       float multiplier = sqrt(6.0 / (_ns[i].n_neurons + _ns[i-1].n_neurons)); // based on Glorot and Bengio, 2010
       l.W = multiplier * Matrix::Random(_ns[i].n_neurons, _ns[i-1].n_neurons);
       l.b = multiplier * Vector::Random(_ns[i].n_neurons);
+
+      l.jac_W = Matrix::Zero(_ns[i].n_neurons, _ns[i-1].n_neurons);
+      l.jac_z_b = Vector::Zero(_ns[i].n_neurons);
+
       _layers.push_back(l);
     }
   };
@@ -199,7 +203,7 @@ public:
     return dist.squaredNorm();
   };
 
-  void backprop_net(Vector x, Vector target)
+  void backprop(Vector x, Vector target)
   {
     feed_forward(x);
 
@@ -207,22 +211,28 @@ public:
 
     size_t size_layers = _layers.size();
 
-    _layers[size_layers - 1].jac_z_b = ( _layers[size_layers - 1].a - _target ).cwiseProduct(deriv_func_map[_ns[size_layers - 1].non_linearity_type](_layers[size_layers - 1].a)); // derivative of loss
-    _layers[size_layers - 1].jac_W = _layers[size_layers - 1].jac_z_b * (_layers[size_layers - 2].a.transpose());
+    _layers[size_layers - 1].jac_z_b += ( _layers[size_layers - 1].a - _target ).cwiseProduct(deriv_func_map[_ns[size_layers - 1].non_linearity_type](_layers[size_layers - 1].a)); // derivative of loss
+    _layers[size_layers - 1].jac_W += _layers[size_layers - 1].jac_z_b * (_layers[size_layers - 2].a.transpose());
 
     for (size_t i = size_layers - 1; i > 1; i--)
     {
-      _layers[i - 1].jac_z_b = ( _layers[i].W.transpose() * _layers[i].jac_z_b ).cwiseProduct( deriv_func_map[_ns[i-1].non_linearity_type](_layers[i-1].a) );
-      _layers[i - 1].jac_W = _layers[i - 1].jac_z_b * (_layers[i - 2].a.transpose());
+      _layers[i - 1].jac_z_b += ( _layers[i].W.transpose() * _layers[i].jac_z_b ).cwiseProduct( deriv_func_map[_ns[i-1].non_linearity_type](_layers[i-1].a) );
+      _layers[i - 1].jac_W += _layers[i - 1].jac_z_b * (_layers[i - 2].a.transpose());
     }
+  };
 
+  void update()
+  {
     // update weights
     for (auto & l : _layers)
     {
       l.b += - _learning_rate * l.jac_z_b;
       l.W += - _learning_rate * l.jac_W;
+
+      l.jac_z_b.setZero();
+      l.jac_W.setZero();
     }
-  };
+  }
 
   void set_learning_rate(float lr)
   {

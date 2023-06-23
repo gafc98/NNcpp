@@ -43,8 +43,9 @@ void simple_classifier()
         float cum_loss = 0;
         for (Data & data : training_data)
         {
-        net.backprop_net(data.x, data.y);
+        net.backprop(data.x, data.y);
         cum_loss += net.get_loss();
+        net.update();
         }
         std::cout << "epoch: " << e << "\tloss: " << cum_loss << "\n";
         //std::cout << "example:\nx:\n" << training_data[0].x << "\n\ny:\n" << training_data[0].y << "\n\nprediction:\n" << net.feed_forward(training_data[0].x) << "\n";
@@ -85,8 +86,9 @@ void simple_regression()
         float cum_loss = 0;
         for (Data & data : training_data)
         {
-        net.backprop_net(data.x, data.y);
+        net.backprop(data.x, data.y);
         cum_loss += net.get_loss();
+        net.update();
         }
         std::cout << "epoch: " << e << "\tloss: " << cum_loss << "\n";
         //std::cout << "example:\nx:\n" << training_data[0].x << "\n\ny:\n" << training_data[0].y << "\n\nprediction:\n" << net.feed_forward(training_data[0].x) << "\n";
@@ -183,8 +185,9 @@ void mnist_digit_classifier()
         float cum_loss = 0;
         for (Data & data : training_data)
         {
-        net.backprop_net(data.x, data.y);
+        net.backprop(data.x, data.y);
         cum_loss += net.get_loss();
+        net.update();
         }
         std::cout << "epoch: " << e << "\tloss: " << cum_loss << "\n";
         //std::cout << "example:\nx:\n" << training_data[0].x << "\n\ny:\n" << training_data[0].y << "\n\nprediction:\n" << net.feed_forward(training_data[0].x) << "\n";
