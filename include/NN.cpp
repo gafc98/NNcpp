@@ -234,9 +234,25 @@ public:
     }
   }
 
+  void sum_jacobians(std::vector<Layer> * layers)
+  {
+    size_t i = 0;
+    for (auto & l : _layers)
+    {
+      l.b += (*(layers))[i].jac_z_b;
+      l.W += (*(layers))[i].jac_W;
+      i++;
+    }
+  }
+
   void set_learning_rate(float lr)
   {
     _learning_rate = lr;
+  }
+
+  std::vector<Layer> * get_layers_ptr()
+  {
+    return &_layers;
   }
 
 private:
