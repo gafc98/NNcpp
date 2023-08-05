@@ -14,7 +14,8 @@
 				"${workspaceFolder}\\main.exe",
 				"-IC:\\Eigen3\\",
 				"-Ofast",
-				"-fconcepts-ts"				
+				"-fconcepts-ts",
+				"-mthreads"			
 			],
 			"options": {
 				"cwd": "${fileDirname}"
