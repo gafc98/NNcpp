@@ -16,6 +16,6 @@ int main()
   //simple_classifier();
   //simple_regression();
   //mnist_digit_classifier();
-
+  mnist_digit_classifier_parallel();
   test_func();
 }
