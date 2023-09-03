@@ -74,7 +74,7 @@ float parallel_backprop(FF_net & original_net, std::vector<Vector> x, std::vecto
     {
         cum_loss += net.get_loss();
         //cout << cum_loss << std::endl;
-        original_net.sum_jacobians(net.get_layers_ptr());
+        original_net.sum_jacobians(net.get_layers_jac_ptr());
     }
     
     return cum_loss;

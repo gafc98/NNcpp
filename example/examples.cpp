@@ -11,6 +11,7 @@ using Vector = Eigen::VectorXf;
 
 using namespace feed_forward_net;
 
+/*
 void simple_classifier()
 {
     FF_net net;
@@ -54,7 +55,9 @@ void simple_classifier()
     for (size_t i = 0; i < 10; i++)
         std::cout << "example no." << i << ":\nx:\n" << training_data[i].x << "\n\ny:\n" << training_data[i].y << "\n\nprediction:\n" << net.feed_forward(training_data[i].x) << "\n";
 }
+*/
 
+/*
 void simple_regression()
 {
     FF_net net;
@@ -96,7 +99,8 @@ void simple_regression()
 
     for (size_t i = 0; i < 10; i++)
         std::cout << "example no." << i << ":\nx:\n" << training_data[i].x << "\n\ny:\n" << training_data[i].y << "\n\nprediction:\n" << net.feed_forward(training_data[i].x) << "\n";
-}
+} 
+*/
 
 void read_data(size_t n_input_samples, size_t n_output_samples, string fname, std::vector<Data> & data_vec)
 {
@@ -135,6 +139,7 @@ void read_data(size_t n_input_samples, size_t n_output_samples, string fname, st
 		std::cout<<"Could not open the file\n";
 }
 
+
 size_t get_max_idx(const Vector & v)
 {
     size_t idx;
@@ -150,11 +155,16 @@ size_t get_max_idx(const Vector & v)
     return idx;
 }
 
+
+
 void mnist_digit_classifier()
 {
     size_t n_inputs = 28 * 28;
 
-    FF_net net;
+    std::vector<Net_Structure> ns;
+    std::vector<Layer> layers;
+    FF_net net(ns, layers);
+
     net.add_layer(n_inputs);
     net.add_layer(800, "leaky_ReLU");
     net.add_layer(700, "leaky_ReLU");
@@ -237,16 +247,14 @@ void mnist_digit_classifier()
 }
 
 
-
-
-
-
-
 void mnist_digit_classifier_parallel()
 {
     size_t n_inputs = 28 * 28;
 
-    FF_net net;
+    std::vector<Net_Structure> ns;
+    std::vector<Layer> layers;
+    FF_net net(ns, layers);
+    
     net.add_layer(n_inputs);
     net.add_layer(800, "leaky_ReLU");
     net.add_layer(700, "leaky_ReLU");
